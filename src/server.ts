@@ -1,9 +1,11 @@
-import express from "express";
-import dotenv from "dotenv";
-import { PrismaClient } from "../generated/prisma"; // según tu output
-
-const prisma = new PrismaClient();
+import express from 'express';
+import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import { corsConfig } from './config/cors';
 dotenv.config();
 const app = express();
+app.use(cors(corsConfig));
+app.use(cookieParser());
 export default app;
 dotenv;

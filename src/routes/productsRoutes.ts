@@ -11,6 +11,12 @@ router.get(
   ProductsController.getProductById
 );
 router.get('/getByTag', ProductsController.getProductByTag);
+router.get(
+  '/getBySlug/:slug',
+  param('slig').isString().withMessage('slug no valido'),
+  ProductsController.getProductBySlug
+);
+
 router.post(
   // todo Deberia estar authenticado para crear un producto asi poder asignar un userId al producto
   '/create',

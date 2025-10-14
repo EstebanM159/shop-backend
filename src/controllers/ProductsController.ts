@@ -1,7 +1,6 @@
 import { PrismaClient } from '../../generated/prisma';
 import { Request, Response } from 'express';
 import { generatePagination, takeSkipValues } from '../utils/pagination';
-import { randomUUID } from 'crypto';
 const prisma = new PrismaClient();
 
 export class ProductsController {
@@ -15,11 +14,19 @@ export class ProductsController {
           skip,
           take,
           where,
-          include: { product_images: true },
+          include: { product_images: { select: { url: true } } },
         }),
         prisma.products.count({ where }),
       ]);
-      const result = generatePagination(products, totalProducts, take);
+
+      // Map product_images to array of strings (urls)
+      const productsWithImageUrls = products.map((product) => ({
+        ...product,
+        images: product.product_images.map((img: { url: string }) => img.url),
+        product_images: undefined,
+      }));
+
+      const result = generatePagination(productsWithImageUrls, totalProducts, take);
       return res.status(200).json(result);
     } catch (error) {
       return res.status(400).json({ error: 'Hubo un error en la petición' });
@@ -28,7 +35,7 @@ export class ProductsController {
 
   static getProductsByName = async (req: Request, res: Response) => {
     const { skip, take } = takeSkipValues(req);
-    const { name } = req.query; // ✅ ahora por query param
+    const { name } = req.query;
     if (!name) return res.status(400).json({ error: 'El parámetro name es obligatorio' });
 
     try {
@@ -46,10 +53,30 @@ export class ProductsController {
       res.status(500).json({ error: 'Hubo un error' });
     }
   };
+  static getProductBySlug = async (req: Request, res: Response) => {
+    const { slug } = req.params;
+    try {
+      const product = await prisma.products.findUnique({
+        where: { slug },
+        include: { product_images: true },
+      });
+      if (!product) return res.status(404).json({ error: 'Slug no encontrado' });
 
+      // Map product_images to array of strings (urls)
+      const productWithImageUrls = {
+        ...product,
+        images: product.product_images.map((img: { url: string }) => img.url),
+        product_images: undefined,
+      };
+
+      return res.status(200).json(productWithImageUrls);
+    } catch (error) {
+      res.status(500).json({ error: 'Hubo un error' });
+    }
+  };
   static getProductByTag = async (req: Request, res: Response) => {
     const { skip, take, gender } = takeSkipValues(req);
-    const { tag } = req.query; // ✅ ahora en params
+    const { tag } = req.query;
     try {
       const products = await prisma.products.findMany({
         skip,
@@ -71,7 +98,7 @@ export class ProductsController {
 
   static getProductById = async (req: Request, res: Response) => {
     // Id debe ser UUID
-    const { productId } = req.params; // ✅ ahora en params
+    const { productId } = req.params;
     try {
       const product = await prisma.products.findUnique({
         where: { id: productId }, // importante castearlo a número
