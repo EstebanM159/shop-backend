@@ -80,26 +80,37 @@ export class AuthController {
   };
   // old checkStatus
   static refreshToken = async (req: Request, res: Response) => {
-    const { refreshToken } = req.body;
-    if (!refreshToken) return res.status(401).json({ error: 'No hay refresh token' });
+    const { refreshToken: refreshTokenBody } = req.body;
+    if (!refreshTokenBody) return res.status(401).json({ error: 'No hay refresh token' });
 
     const user = await prisma.users.findFirst({
-      where: { refreshToken: refreshToken },
+      where: { refreshToken: refreshTokenBody },
+      select: {
+        email: true,
+        id: true,
+        fullName: true,
+        refreshToken: true,
+        roles: true,
+      },
     });
-    if (!user) return res.status(403).json({ error: 'Token inválido' });
+    if (!user)
+      return res.status(403).json({
+        error: 'Token inválido, no existe un usuario con este token',
+        token: refreshTokenBody,
+      });
 
     try {
-      const isValidToken = verifyToken(refreshToken);
+      const isValidToken = verifyToken(refreshTokenBody);
       if (!isValidToken) return res.status(403).json({ error: 'Token inválido' });
 
-      const { accessToken, refreshToken: newRefreshToken } = generateTokens(user);
+      const { accessToken, refreshToken } = generateTokens(user);
 
       await prisma.users.update({
         where: { id: user.id },
-        data: { refreshToken: newRefreshToken },
+        data: { refreshToken: refreshToken },
       });
 
-      return res.json({ accessToken });
+      return res.json({ accessToken, refreshToken, user });
     } catch (error) {
       return res.status(403).json({ error: 'Refresh token inválido o expirado' });
     }
