@@ -1,5 +1,6 @@
 import productsRoute from './routes/productsRoutes';
 import authRoute from './routes/authRoutes';
+import filesRoutes from './routes/fileRoutes';
 import server from './server';
 import express from 'express';
 const port = process.env.PORT || 4000;
@@ -10,3 +11,4 @@ server.listen(port, () => {
 server.use(express.json());
 server.use('/api/products', productsRoute);
 server.use('/api/auth', authRoute);
+server.use('/api/files', filesRoutes);

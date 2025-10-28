@@ -1,15 +1,25 @@
 import { PrismaClient } from '../../generated/prisma';
 import { Request, Response } from 'express';
 import { generatePagination, takeSkipValues } from '../utils/pagination';
-import { UploadedFile } from 'express-fileupload';
 
 const prisma = new PrismaClient();
 
 export class ProductsController {
   static getProducts = async (req: Request, res: Response) => {
-    const { skip, take, gender } = takeSkipValues(req);
-    const where = gender ? { gender: { contains: gender } } : {};
+    const { skip, take, gender, tag, size } = takeSkipValues(req);
+    const where: any = {};
 
+    if (gender) {
+      where.gender = { contains: gender };
+    }
+
+    if (tag) {
+      where.tags = { has: String(tag) };
+    }
+
+    if (size) {
+      where.sizes = { has: String(size) };
+    }
     try {
       const [products, totalProducts] = await Promise.all([
         prisma.products.findMany({
@@ -18,7 +28,7 @@ export class ProductsController {
           where,
           include: { product_images: { select: { url: true } } },
         }),
-        prisma.products.count({ where }),
+        prisma.products.count({}),
       ]);
 
       // Map product_images to array of strings (urls)
@@ -47,8 +57,6 @@ export class ProductsController {
         where: { title: { contains: String(name) } },
         include: { product_images: true },
       });
-
-      // TODO aca tambien deberia buscar el usuario que creo esto
       const result = generatePagination(products, products.length, take);
       return res.status(200).json(result);
     } catch (error) {
@@ -118,8 +126,7 @@ export class ProductsController {
     }
   };
   static createProduct = async (req: Request, res: Response) => {
-    const { title, price, slug, gender, stock, tags, product_images, sizes, description } =
-      req.body;
+    const { title, price, slug, gender, stock, tags, images, sizes, description } = req.body;
     try {
       const product = await prisma.products.create({
         data: {
@@ -132,8 +139,8 @@ export class ProductsController {
           tags: tags,
           sizes: sizes,
           product_images: {
-            create: product_images.map((image: { url: string }) => ({
-              url: image.url,
+            create: images.map((image: { url: string }) => ({
+              url: image,
             })),
           },
         },
@@ -144,7 +151,7 @@ export class ProductsController {
       return res.status(201).json({ message: 'Producto creado correctamente' });
     } catch (error) {
       console.log(error);
-      return res.status(500).json({ error: 'Hubo un error al actualizar el producto' });
+      return res.status(500).json({ error: 'Hubo un error al crear el producto' });
     }
   };
   static updateProduct = async (req: Request, res: Response) => {
@@ -172,7 +179,6 @@ export class ProductsController {
           tags: tags,
           sizes: sizes,
           // ? esto actualiza las imagenes tmb?
-          // TODO Actualizar/crear/borrar imagenes
           // Si se envían imágenes, primero eliminamos las existentes y luego creamos las nuevas para evitar duplicados.
           ...(images && Array.isArray(images) && images.length > 0
             ? {
@@ -209,28 +215,16 @@ export class ProductsController {
       return res.status(500).json({ error: 'Hubo un error al borrar el producto' });
     }
   };
-  static fileProducts = async (req: Request, res: Response) => {
-    try {
-      if (!req.files || !req.files.file) {
-        return res.status(400).json({ error: 'No se recibió ningún archivo' });
-      }
+  static getTags = async (req: Request, res: Response) => {
+    const tags = await prisma.products.findMany({
+      select: {
+        tags: true,
+        sizes: true,
+      },
+    });
+    const allTags = [...new Set(tags.flatMap((p) => p.tags))];
+    const allSizes = [...new Set(tags.flatMap((p) => p.sizes))];
 
-      const fileVar = req.files.file as UploadedFile | UploadedFile[];
-      const file = Array.isArray(fileVar) ? fileVar[0] : fileVar;
-      if (!file) {
-        return res.status(400).json({ error: 'No se recibió ningún archivo válido' });
-      }
-
-      const fileExtension = file.mimetype.split('/')[1];
-      const uniqueName = `${Date.now()}.${fileExtension}`;
-
-      // 🔹 No guardamos el archivo
-      // Solo generamos un nombre único y lo devolvemos
-      // Tu frontend subirá el archivo a Supabase usando ese nombre
-      res.json({ fileName: uniqueName });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Error al procesar archivo' });
-    }
+    res.json({ allSizes, allTags });
   };
 }

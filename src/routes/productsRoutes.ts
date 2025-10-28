@@ -26,7 +26,7 @@ router.post(
   body('slug').notEmpty().withMessage('El producto debe contener un slug'),
   body('stock').notEmpty().withMessage('El producto debe contener un stock'),
   body('sizes').isArray().withMessage('Los talles deben estar en un array'),
-  body('product_images').isArray().withMessage('Las imagenes deben estar en un array'),
+  body('images').isArray().withMessage('Las imagenes deben estar en un array'),
   body('gender').notEmpty().withMessage('Los talles deben estar en un array'),
   body('tags').isArray().withMessage('Los talles deben estar en un array'),
   handleInputErrors,
@@ -47,11 +47,5 @@ router.patch(
   handleInputErrors,
   ProductsController.updateProduct
 );
-router.delete(
-  '/delete/:productId',
-  param('productId').isUUID().withMessage('productId no valido'),
-  handleInputErrors,
-  ProductsController.deleteProduct
-);
-router.post('/files', ProductsController.fileProducts);
+router.get('/getTags', ProductsController.getTags);
 export default router;

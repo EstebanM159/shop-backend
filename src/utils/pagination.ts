@@ -1,5 +1,5 @@
-import { products } from "../../generated/prisma";
-import { Request } from "express";
+import { products } from '../../generated/prisma';
+import { Request } from 'express';
 
 export type Pagination = {
   count: number; // total de productos en la base
@@ -23,7 +23,9 @@ export const generatePagination = (
 export const takeSkipValues = (req: Request) => {
   const skip = Number(req.query.skip) || 0;
   const take = Number(req.query.take) || 10;
-  const gender = req.query.gender as string | undefined;
+  const gender = req.query.gender as string;
+  const size = req.query.size as string | undefined;
+  const tag = req.query.tag as string | undefined;
 
-  return { skip, take, gender };
+  return { skip, take, gender, size, tag };
 };
