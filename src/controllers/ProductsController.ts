@@ -28,7 +28,7 @@ export class ProductsController {
           where,
           include: { product_images: { select: { url: true } } },
         }),
-        prisma.products.count({}),
+        prisma.products.count({ where }),
       ]);
 
       // Map product_images to array of strings (urls)
@@ -37,7 +37,7 @@ export class ProductsController {
         images: product.product_images.map((img: { url: string }) => img.url),
         product_images: undefined,
       }));
-
+      console.log(totalProducts);
       const result = generatePagination(productsWithImageUrls, totalProducts, take);
       return res.status(200).json(result);
     } catch (error) {
