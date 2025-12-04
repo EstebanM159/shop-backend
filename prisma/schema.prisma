@@ -32,12 +32,27 @@ model products {
 }
 
 model users {
-  id       String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  email    String     @unique(map: "UQ_97672ac88f789774dd47f7c8be3")
-  password String
-  fullName String
-  isActive Boolean    @default(true)
-  refreshToken  String?
-  roles    String[]   @default(["user"])
-  products products[]
+  // Mantenemos la generación de ID de Supabase
+  id           String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  
+  // Nombres de campos
+  email        String     @unique(map: "UQ_97672ac88f789774dd47f7c8be3")
+  password     String
+  fullName     String     @map("fullName") // Asegura que coincida con la columna en DB
+  isActive     Boolean    @default(true)
+  
+  // Aquí está tu refreshToken. El '?' significa que PUEDE ser nulo.
+  // Si quieres evitar que se borre por error en el código, esto sigue siendo necesario
+  // para cuando el usuario hace logout.
+  refreshToken String?    @map("refreshToken") 
+  
+  roles        String[]   @default(["user"])
+  
+  // Relaciones
+  products     products[]
+
+  // ESTA ES LA CLAVE PARA NO BORRAR DATOS:
+  // Le dice a Prisma: "Usa el modelo 'User' en código, pero lee la tabla 'users' en Supabase"
+  @@map("users") 
 }
+ 
