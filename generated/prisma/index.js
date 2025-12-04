@@ -165,6 +165,14 @@ const config = {
         "fromEnvVar": null,
         "value": "windows",
         "native": true
+      },
+      {
+        "fromEnvVar": null,
+        "value": "windows"
+      },
+      {
+        "fromEnvVar": null,
+        "value": "debian-openssl-3.0.x"
       }
     ],
     "previewFeatures": [],
@@ -182,6 +190,7 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -190,8 +199,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DIRECT_URL\")\n}\n\nmodel product_images {\n  id        Int       @id @default(autoincrement())\n  url       String\n  productId String?   @db.Uuid\n  products  products? @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: \"FK_b367708bf720c8dd62fc6833161\")\n}\n\nmodel products {\n  id             String           @id @default(dbgenerated(\"uuid_generate_v4()\")) @db.Uuid\n  title          String           @unique(map: \"UQ_c30f00a871de74c8e8c213acc4a\")\n  price          Float            @default(0)\n  description    String?\n  slug           String           @unique(map: \"UQ_464f927ae360106b783ed0b4106\")\n  stock          Int              @default(0)\n  sizes          String[]\n  gender         String\n  tags           String[]         @default([])\n  userId         String?          @db.Uuid\n  product_images product_images[]\n  users          users?           @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: \"FK_99d90c2a483d79f3b627fb1d5e9\")\n}\n\nmodel users {\n  id           String     @id @default(dbgenerated(\"uuid_generate_v4()\")) @db.Uuid\n  email        String     @unique(map: \"UQ_97672ac88f789774dd47f7c8be3\")\n  password     String\n  fullName     String\n  isActive     Boolean    @default(true)\n  refreshToken String?\n  roles        String[]   @default([\"user\"])\n  products     products[]\n}\n",
-  "inlineSchemaHash": "fbaab1a10f99497cd840fa291ec8f2cbbb1ce8fa2ac82b83635b8604168b3502",
+  "inlineSchema": "generator client {\n  provider      = \"prisma-client-js\"\n  output        = \"../generated/prisma\"\n  binaryTargets = [\"native\", \"windows\", \"debian-openssl-3.0.x\"]\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DIRECT_URL\")\n}\n\nmodel product_images {\n  id        Int       @id @default(autoincrement())\n  url       String\n  productId String?   @db.Uuid\n  products  products? @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: \"FK_b367708bf720c8dd62fc6833161\")\n}\n\nmodel products {\n  id             String           @id @default(dbgenerated(\"uuid_generate_v4()\")) @db.Uuid\n  title          String           @unique(map: \"UQ_c30f00a871de74c8e8c213acc4a\")\n  price          Float            @default(0)\n  description    String?\n  slug           String           @unique(map: \"UQ_464f927ae360106b783ed0b4106\")\n  stock          Int              @default(0)\n  sizes          String[]\n  gender         String\n  tags           String[]         @default([])\n  userId         String?          @db.Uuid\n  product_images product_images[]\n  users          users?           @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: \"FK_99d90c2a483d79f3b627fb1d5e9\")\n}\n\nmodel users {\n  id           String     @id @default(dbgenerated(\"uuid_generate_v4()\")) @db.Uuid\n  email        String     @unique(map: \"UQ_97672ac88f789774dd47f7c8be3\")\n  password     String\n  fullName     String\n  isActive     Boolean    @default(true)\n  refreshToken String?\n  roles        String[]   @default([\"user\"])\n  products     products[]\n}\n",
+  "inlineSchemaHash": "0dc8e96ff647ee0edcf2c33a9f3a625d4aedf500fd0aaccdbfac1c5cbea2fea3",
   "copyEngine": true
 }
 
@@ -232,6 +241,10 @@ Object.assign(exports, Prisma)
 // file annotations for bundling tools to include these files
 path.join(__dirname, "query_engine-windows.dll.node");
 path.join(process.cwd(), "generated/prisma/query_engine-windows.dll.node")
+
+// file annotations for bundling tools to include these files
+path.join(__dirname, "libquery_engine-debian-openssl-3.0.x.so.node");
+path.join(process.cwd(), "generated/prisma/libquery_engine-debian-openssl-3.0.x.so.node")
 // file annotations for bundling tools to include these files
 path.join(__dirname, "schema.prisma");
 path.join(process.cwd(), "generated/prisma/schema.prisma")
