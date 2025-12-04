@@ -26,6 +26,7 @@ export const takeSkipValues = (req: Request) => {
   const gender = req.query.gender as string;
   const size = req.query.size as string | undefined;
   const tag = req.query.tag as string | undefined;
-
+  console.log(gender);
+  console.log(tag);
   return { skip, take, gender, size, tag };
 };

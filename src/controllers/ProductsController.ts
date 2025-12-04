@@ -9,8 +9,9 @@ export class ProductsController {
     const { skip, take, gender, tag, size } = takeSkipValues(req);
     const where: any = {};
 
+    console.log(gender);
     if (gender) {
-      where.gender = { contains: gender };
+      where.gender = { equals: gender };
     }
 
     if (tag) {
@@ -37,7 +38,7 @@ export class ProductsController {
         images: product.product_images.map((img: { url: string }) => img.url),
         product_images: undefined,
       }));
-      console.log(totalProducts);
+
       const result = generatePagination(productsWithImageUrls, totalProducts, take);
       return res.status(200).json(result);
     } catch (error) {
@@ -148,7 +149,7 @@ export class ProductsController {
           product_images: true, // si querés devolverlas también
         },
       });
-      return res.status(201).json({ message: 'Producto creado correctamente' });
+      return res.status(201).json(product).send({ message: 'Producto creado correctamente' });
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: 'Hubo un error al crear el producto' });
