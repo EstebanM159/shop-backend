@@ -9,7 +9,6 @@ export class ProductsController {
     const { skip, take, gender, tag, size } = takeSkipValues(req);
     const where: any = {};
 
-    console.log(gender);
     if (gender) {
       where.gender = { equals: gender };
     }
@@ -158,7 +157,6 @@ export class ProductsController {
   static updateProduct = async (req: Request, res: Response) => {
     const { productId } = req.params;
     const { title, price, slug, gender, stock, tags, images, sizes, description } = req.body;
-    console.log(images);
     const productExists = await prisma.products.findUnique({
       where: {
         id: productId,
