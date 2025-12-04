@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DIRECT_URL")
+}
+
+model product_images {
+  id        Int       @id @default(autoincrement())
+  url       String
+  productId String?   @db.Uuid
+  products  products? @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_b367708bf720c8dd62fc6833161")
+}
+
+model products {
+  id             String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  title          String           @unique(map: "UQ_c30f00a871de74c8e8c213acc4a")
+  price          Float            @default(0)
+  description    String?
+  slug           String           @unique(map: "UQ_464f927ae360106b783ed0b4106")
+  stock          Int              @default(0)
+  sizes          String[]
+  gender         String
+  tags           String[]         @default([])
+  userId         String?          @db.Uuid
+  product_images product_images[]
+  users          users?           @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_99d90c2a483d79f3b627fb1d5e9")
+}
+
+model users {
+  id           String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email        String     @unique(map: "UQ_97672ac88f789774dd47f7c8be3")
+  password     String
+  fullName     String
+  isActive     Boolean    @default(true)
+  refreshToken String?
+  roles        String[]   @default(["user"])
+  products     products[]
+}
