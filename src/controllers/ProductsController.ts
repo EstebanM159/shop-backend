@@ -41,6 +41,7 @@ export class ProductsController {
       const result = generatePagination(productsWithImageUrls, totalProducts, take);
       return res.status(200).json(result);
     } catch (error) {
+      console.log(error);
       return res.status(400).json({ error: 'Hubo un error en la petición' });
     }
   };
