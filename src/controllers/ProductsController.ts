@@ -47,18 +47,23 @@ export class ProductsController {
   };
 
   static getProductsByName = async (req: Request, res: Response) => {
-    const { skip, take } = takeSkipValues(req);
-    const { name } = req.query;
-    if (!name) return res.status(400).json({ error: 'El parámetro name es obligatorio' });
+    const { skip, take, query } = takeSkipValues(req);
+    console.log(query);
+    // if (!name) return res.status(400).json({ error: 'El parámetro name es obligatorio' });
 
     try {
       const products = await prisma.products.findMany({
         skip,
         take,
-        where: { title: { contains: String(name) } },
-        include: { product_images: true },
+        where: { title: { contains: String(query), mode: 'insensitive' } },
+        include: { product_images: { select: { url: true } } },
       });
-      const result = generatePagination(products, products.length, take);
+      const productsWithImageUrls = products.map((product) => ({
+        ...product,
+        images: product.product_images.map((img: { url: string }) => img.url),
+        product_images: undefined,
+      }));
+      const result = generatePagination(productsWithImageUrls, take);
       return res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: 'Hubo un error' });
